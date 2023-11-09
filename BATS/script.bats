@@ -3,34 +3,36 @@
 load $HOME/test/'test_helper/batsassert/load.bash'
 load $HOME/test/'test_helper/batscore/load.bash'
 
+testFile="f.txt"
 function setup(){
-  echo "" > f.txt
+  echo "" > "$testFile"
+  source script.sh
 }
 function teardown(){
-  rm f.txt
+  rm "$testFile"
 }
 
 #unit test - 2 IFs, 2 test
 @test "saveResponseSavesStatusToFileOnFalse" {
-  source script.sh
-  run saveResponse f.txt false
+  run saveResponse "$testFile" false
+  assert_output --partial "is correct"
   run cat f.txt
-  [ "$output" == "false" ]
+  assert_output "false"
 }
 
 @test "saveResponseFileEmptyOnNonFalseStatus" {
-  source script.sh
-  run saveResponse f.txt true
-  run cat f.txt
-  [ "$output" == "" ]
+  run saveResponse "$testFile" true
+  assert_output --partial "is not correct"
+  run cat "$testFile"
+  refute_output "false"
+  assert_output ""
 }
 
 #e2e test
 @test "E2E: fileContainsCorrectStatus" {
   taskId=1
-  fileName=file.txt
-  run sh script.sh $taskId $fileName
-  [ "$status" -eq 0 ] #exit code is 0
-  run cat $fileName
-  [ "$output" == "false" ]
+  run run_main $taskId "$testFile"
+  assert_success
+  run cat "$testFile"
+  assert_output "false"
 }
